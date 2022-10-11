@@ -154,4 +154,4 @@ async def post():
 			await channel_main.send(embed = messageEmbed)
 	print(dtime.utcnow(), 'done')
 
-client.run(os.getenv(DISCORD_TOKEN))
+client.run(os.getenv("DISCORD_TOKEN"))
