@@ -153,4 +153,4 @@ async def post():
 			await channel_main.send(embed = messageEmbed)
 	print(dtime.utcnow(), 'done')
 
-client.run("MTAyOTM4NjAyMDYyMzQ4MjkzMw.GwzXg-.cvjl233274kg7dETKKo4uaSpmWhrigfddhJ40s")
+client.run(DISCORD_TOKEN)
