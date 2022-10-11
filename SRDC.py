@@ -7,6 +7,7 @@ from requests import get
 from datetime import datetime as dtime
 from datetime import timedelta as tdel
 import math
+import os
 
 
 
@@ -153,4 +154,4 @@ async def post():
 			await channel_main.send(embed = messageEmbed)
 	print(dtime.utcnow(), 'done')
 
-client.run(DISCORD_TOKEN)
+client.run(os.getenv(DISCORD_TOKEN))
