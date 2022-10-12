@@ -8,6 +8,7 @@ from datetime import datetime as dtime
 from datetime import timedelta as tdel
 import math
 import os
+from time import sleep
 
 
 
@@ -23,6 +24,7 @@ def convert(t):
 
 
 frequency = 10 #minutes
+delay = 5 #minutes
 print(dtime.utcnow(), 'init')
 Client = discord.Client(intents=discord.Intents.default())
 bot_prefix= "."
@@ -37,17 +39,31 @@ hpSeries = get('https://www.speedrun.com/api/v1/series/15ndxp7r/games?_bulk=yes'
 for hpGame in hpSeries:
 	gameName = hpGame['names']['international']
 	gameID = hpGame['id']
-	hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
+	print(gameName)
+	try:
+		hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
+	except KeyError:
+		print('waiting')
+		sleep(60)
+		hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
 	variables = []
 	boards.append(gameID)
 	for category in hpCategories:
 		categoryName = category['name']
 		categoryID = category['id']
 		if category['type'] == 'per-game':
-			catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()['data']
-			for catVar in catVars:
-				if catVar['id'] not in variables and catVar['is-subcategory']:
-					variables.append(catVar['id'])
+			try:
+				catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
+				for catVar in catVars['data']:
+					if catVar['id'] not in variables and catVar['is-subcategory']:
+						variables.append(catVar['id'])
+			except KeyError:
+				print('waiting')
+				sleep(60)
+				catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
+				for catVar in catVars['data']:
+					if catVar['id'] not in variables and catVar['is-subcategory']:
+						variables.append(catVar['id'])
 	if len(variables) > 0:
 		gamesWithVariables[gameName] = variables
 
@@ -74,7 +90,7 @@ async def post():
 			for run in getRuns:
 				if (run['status']['verify-date'] != None):
 					vtime = dtime.strptime(run['status']['verify-date'],'%Y-%m-%dT%H:%M:%SZ')
-					if (vtime>=lastCheck):
+					if (vtime >= lastCheck):
 						newRuns.append(run['id'])
 					else:
 						break
