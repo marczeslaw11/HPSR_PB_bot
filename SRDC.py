@@ -1,3 +1,4 @@
+from operator import truediv
 import discord
 from discord.ext import commands
 from discord.ext import tasks
@@ -23,14 +24,13 @@ def convert(t):
 		return "%d:%02d.%03d" % (minutes, seconds, milliseconds) 
 
 
-frequency = 10 #minutes
-delay = 5 #minutes
+frequency = 5 #minutes
 print(dtime.utcnow(), 'init')
 Client = discord.Client(intents=discord.Intents.default())
 bot_prefix= "."
 client = commands.Bot(command_prefix=bot_prefix, intents=discord.Intents.default())
 api = srcomapi.SpeedrunCom()
-boards = []
+boards = {}
 gamesWithVariables = {}
 
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(math.floor(n/10)%10!=1)*(n%10<4)*n%10::4])
@@ -39,31 +39,24 @@ hpSeries = get('https://www.speedrun.com/api/v1/series/15ndxp7r/games?_bulk=yes'
 for hpGame in hpSeries:
 	gameName = hpGame['names']['international']
 	gameID = hpGame['id']
-	print(gameName)
+	hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
 	try:
-		hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
-	except KeyError:
-		print('waiting')
-		sleep(60)
-		hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
+		getLastRun = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game=%s' % (gameID)).json()['data'][0]['id']
+	except IndexError:
+		pass
+	sleep(0.3)
 	variables = []
-	boards.append(gameID)
+	boards[gameID] = getLastRun
+	print(gameName, getLastRun)
 	for category in hpCategories:
+		sleep(0.1)
 		categoryName = category['name']
 		categoryID = category['id']
 		if category['type'] == 'per-game':
-			try:
-				catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
-				for catVar in catVars['data']:
-					if catVar['id'] not in variables and catVar['is-subcategory']:
-						variables.append(catVar['id'])
-			except KeyError:
-				print('waiting')
-				sleep(60)
-				catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
-				for catVar in catVars['data']:
-					if catVar['id'] not in variables and catVar['is-subcategory']:
-						variables.append(catVar['id'])
+			catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
+			for catVar in catVars['data']:
+				if catVar['id'] not in variables and catVar['is-subcategory']:
+					variables.append(catVar['id'])
 	if len(variables) > 0:
 		gamesWithVariables[gameName] = variables
 
@@ -87,18 +80,24 @@ async def post():
 	for board in boards:
 		try:
 			getRuns = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game='+board).json()['data']
+			newLastRun = ''
+			sleep(0.1)
 			for run in getRuns:
-				if (run['status']['verify-date'] != None):
-					vtime = dtime.strptime(run['status']['verify-date'],'%Y-%m-%dT%H:%M:%SZ')
-					if (vtime >= lastCheck):
-						newRuns.append(run['id'])
-					else:
-						break
+				if run['id'] != boards[board]:
+					newRuns.append(run['id'])
+					if newLastRun == '':
+						newLastRun = run['id']					
+				else:
+					if newLastRun != '':
+						boards[board] = newLastRun
+					break
+			print(board, boards[board])
 		except:
 			await channel_test.send("<@341941638681067520> category " + board + " has been deleted")
 
 	if len(newRuns)>0:
 		for newRunID in newRuns:
+			sleep(0.3)
 			getPlace = 0
 			getRun = api.get("runs/"+newRunID)
 			getPlayers = ''
@@ -170,4 +169,3 @@ async def post():
 	print(dtime.utcnow(), 'done')
 
 client.run(os.getenv("DISCORD_TOKEN"))
-
