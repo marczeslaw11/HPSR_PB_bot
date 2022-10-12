@@ -18,10 +18,10 @@ def convert(t):
 	if t > 600:
 		return "%d:%02d:%02d" % (hours, minutes, seconds)
 	else:
-		return "%d:%02d.%03d" % (minutes, seconds, milliseconds)
+		return "%d:%02d.%03d" % (minutes, seconds, milliseconds) 
 
 
-frequency = 60*18 #minutes
+frequency = 10 #minutes
 print(dtime.utcnow(), 'init')
 Client = discord.Client(intents=discord.Intents.default())
 bot_prefix= "."
@@ -51,7 +51,6 @@ for hpGame in hpSeries:
 	if len(variables) > 0:
 		gamesWithVariables[gameName] = variables
 
-# find categories at https://www.speedrun.com/api/v1/categories/
 
 @client.event
 async def on_ready():
