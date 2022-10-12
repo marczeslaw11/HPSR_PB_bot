@@ -10,6 +10,7 @@ import math
 import os
 
 
+
 def convert(t):
 	hours = int(t/60/60)
 	minutes = int(t/60%60)
@@ -18,10 +19,10 @@ def convert(t):
 	if t > 600:
 		return "%d:%02d:%02d" % (hours, minutes, seconds)
 	else:
-		return "%d:%02d.%03d" % (minutes, seconds, milliseconds)
+		return "%d:%02d:%03d" % (minutes, seconds, milliseconds)
 
 
-frequency = 60*18 #minutes
+frequency = 10 #minutes
 print(dtime.utcnow(), 'init')
 Client = discord.Client(intents=discord.Intents.default())
 bot_prefix= "."
@@ -35,7 +36,6 @@ ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(math.floor(n/10)%10!=1)*(n%10<4)*n%1
 hpSeries = get('https://www.speedrun.com/api/v1/series/15ndxp7r/games?_bulk=yes').json()['data']
 for hpGame in hpSeries:
 	gameName = hpGame['names']['international']
-	print(gameName)
 	gameID = hpGame['id']
 	hpCategories = get('https://www.speedrun.com/api/v1/games/%s/categories' % (gameID)).json()['data']
 	variables = []
@@ -76,7 +76,6 @@ async def post():
 				if (run['status']['verify-date'] != None):
 					vtime = dtime.strptime(run['status']['verify-date'],'%Y-%m-%dT%H:%M:%SZ')
 					if (vtime>=lastCheck):
-						print(vtime)
 						newRuns.append(run['id'])
 					else:
 						break
@@ -156,3 +155,4 @@ async def post():
 	print(dtime.utcnow(), 'done')
 
 client.run(os.getenv("DISCORD_TOKEN"))
+
