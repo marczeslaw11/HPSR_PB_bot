@@ -36,6 +36,7 @@ gamesWithVariables = {}
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(math.floor(n/10)%10!=1)*(n%10<4)*n%10::4])
 
 hpSeries = get('https://www.speedrun.com/api/v1/series/15ndxp7r/games?_bulk=yes').json()['data']
+sleep(0.3)
 for hpGame in hpSeries:
 	gameName = hpGame['names']['international']
 	gameID = hpGame['id']
@@ -44,6 +45,7 @@ for hpGame in hpSeries:
 		getLastRun = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game=%s' % (gameID)).json()['data'][0]['id']
 	except IndexError:
 		pass
+	sleep(0.6)
 	variables = []
 	boards[gameID] = getLastRun
 	for category in hpCategories:
@@ -51,6 +53,7 @@ for hpGame in hpSeries:
 		categoryID = category['id']
 		if category['type'] == 'per-game':
 			catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
+			sleep(0.3)
 			for catVar in catVars['data']:
 				if catVar['id'] not in variables and catVar['is-subcategory']:
 					variables.append(catVar['id'])
