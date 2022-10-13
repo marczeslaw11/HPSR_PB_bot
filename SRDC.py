@@ -44,12 +44,9 @@ for hpGame in hpSeries:
 		getLastRun = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game=%s' % (gameID)).json()['data'][0]['id']
 	except IndexError:
 		pass
-	sleep(0.3)
 	variables = []
 	boards[gameID] = getLastRun
-	print(gameName, getLastRun)
 	for category in hpCategories:
-		sleep(0.1)
 		categoryName = category['name']
 		categoryID = category['id']
 		if category['type'] == 'per-game':
@@ -59,6 +56,7 @@ for hpGame in hpSeries:
 					variables.append(catVar['id'])
 	if len(variables) > 0:
 		gamesWithVariables[gameName] = variables
+sleep(30)
 
 
 @client.event
@@ -80,31 +78,38 @@ async def post():
 	for board in boards:
 		try:
 			getRuns = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game='+board).json()['data']
-			newLastRun = ''
-			sleep(0.1)
+			sleep(0.3)
+			lastRun = boards[board] 
+			newLastRun = False
+			
 			for run in getRuns:
-				if run['id'] != boards[board]:
+				if run['id'] != lastRun:
 					newRuns.append(run['id'])
-					if newLastRun == '':
+					if not bool(newLastRun):
 						newLastRun = run['id']					
 				else:
-					if newLastRun != '':
-						boards[board] = newLastRun
 					break
-			print(board, boards[board])
+			if bool(newLastRun):
+				boards[board] = newLastRun
 		except:
 			await channel_test.send("<@341941638681067520> category " + board + " has been deleted")
 
 	if len(newRuns)>0:
 		for newRunID in newRuns:
-			sleep(0.3)
 			getPlace = 0
-			getRun = api.get("runs/"+newRunID)
+			try:
+				getRun = api.get("runs/"+newRunID)
+				sleep(0.3)
+			except srcomapi.exceptions.APIRequestException:
+				await channel_test.send("<@341941638681067520> run " + newRunID + " has been deleted")
+				continue
 			getPlayers = ''
 			getGame = api.get('games/'+getRun['game'])
+			sleep(0.3)
 			getGameName = getGame['names']['international']
 			getGameID = getGame['id']
 			getCategory = api.get('categories/'+getRun['category'])
+			sleep(0.3)
 			getCategoryName = getGameName+" "+getCategory['name']
 			getCategoryID = getCategory['id']
 			getTime = convert(getRun['times']['primary_t'])
@@ -122,8 +127,10 @@ async def post():
 						api.get('users/'+getRun['players'][player]['id'])['names']['international'],
 						api.get('users/'+getRun['players'][player]['id'])['weblink']
 					)
+					sleep(0.6)
 				else:
 					getPlayers += api.get('users/'+getRun['players'][player]['name'])
+					sleep(0.3)
 			
 			leaderboardLink = 'https://www.speedrun.com/api/v1/leaderboards/%s/category/%s?' % (getGameID, getCategoryID)
 			if getGameName in gamesWithVariables:
@@ -131,41 +138,48 @@ async def post():
 					try:
 						getCategoryName += " "+api.get("variables/"+var)['values']['values'][getRun['values'][var]]['label']
 						leaderboardLink += "var-"+var+"="+getRun['values'][var]+'&'
+						sleep(0.3)
 					except:
 						getCategoryName += ''
 			
 			getLeaderboard = get(leaderboardLink).json()['data']
+			sleep(0.3)
 			for runOnBoard in getLeaderboard['runs']:
 				if runOnBoard['run']['id']==newRunID:
 					getPlace = runOnBoard['place']
 			
-			if getPlace == 1:
-					message = "<:GoldScar:619662499381379072> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
-					getPlayers, 
-					getCategoryName,
-					api.get('categories/'+getRun['category'])['weblink'],
-					getTime,
-					api.get("runs/"+newRunID)['weblink'],
-				)
-			elif getPlace == 0:
-				message = "%s got a new run in [%s](%s) with a time of [%s](%s)" % (
-					getPlayers, 
-					getCategoryName,
-					api.get('categories/'+getRun['category'])['weblink'],
-					getTime,
-					api.get("runs/"+newRunID)['weblink'],
-				)
-			else:
-				message = "%s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
-					getPlayers, 
-					getCategoryName,
-					api.get('categories/'+getRun['category'])['weblink'],
-					getTime,
-					api.get("runs/"+newRunID)['weblink'],
-					ordinal(getPlace)
-				)
-			messageEmbed = discord.Embed(colour=discord.Colour(0xffd700), url="https://discordapp.com", description=message)
-			await channel_main.send(embed = messageEmbed)
+			try:
+				if getPlace == 1:
+						message = "<:GoldScar:619662499381379072> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
+						getPlayers, 
+						getCategoryName,
+						api.get('categories/'+getRun['category'])['weblink'],
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+					)
+				elif getPlace == 0:
+					message = "%s got a new run in [%s](%s) with a time of [%s](%s)" % (
+						getPlayers, 
+						getCategoryName,
+						api.get('categories/'+getRun['category'])['weblink'],
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+					)
+				else:
+					message = "%s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
+						getPlayers, 
+						getCategoryName,
+						api.get('categories/'+getRun['category'])['weblink'],
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+						ordinal(getPlace)
+					)
+				sleep(0.6)
+				messageEmbed = discord.Embed(colour=discord.Colour(0xffd700), url="https://discordapp.com", description=message)
+				await channel_main.send(embed = messageEmbed)				
+			except srcomapi.exceptions.APIRequestException:
+				await channel_test.send("<@341941638681067520> run " + newRunID + " has been deleted")
+	
 	print(dtime.utcnow(), 'done')
 
 client.run(os.getenv("DISCORD_TOKEN"))
