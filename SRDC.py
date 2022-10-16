@@ -72,7 +72,7 @@ async def on_ready():
 
 @tasks.loop(minutes = frequency)
 async def post():
-	channel_main = client.get_channel(1029384953189896322)
+	channel_main = client.get_channel(597203792055894016)
 	channel_test = client.get_channel(1029384953189896322)
 	lastCheck = dtime.utcnow()-tdel(minutes = frequency)
 	print(dtime.utcnow(), 'start')
