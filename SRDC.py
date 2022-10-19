@@ -36,7 +36,7 @@ gamesWithVariables = {}
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(math.floor(n/10)%10!=1)*(n%10<4)*n%10::4])
 
 hpSeries = get('https://www.speedrun.com/api/v1/series/15ndxp7r/games?_bulk=yes').json()['data']
-sleep(0.3)
+sleep(0.6)
 for hpGame in hpSeries:
 	gameName = hpGame['names']['international']
 	gameID = hpGame['id']
@@ -45,7 +45,7 @@ for hpGame in hpSeries:
 		getLastRun = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game=%s' % (gameID)).json()['data'][0]['id']
 	except IndexError:
 		pass
-	sleep(0.6)
+	sleep(1.2)
 	variables = []
 	boards[gameID] = getLastRun
 	for category in hpCategories:
@@ -53,13 +53,12 @@ for hpGame in hpSeries:
 		categoryID = category['id']
 		if category['type'] == 'per-game':
 			catVars = get('https://www.speedrun.com/api/v1/categories/%s/variables' % (categoryID)).json()
-			sleep(0.3)
+			sleep(0.6)
 			for catVar in catVars['data']:
 				if catVar['id'] not in variables and catVar['is-subcategory']:
 					variables.append(catVar['id'])
 	if len(variables) > 0:
 		gamesWithVariables[gameName] = variables
-sleep(30)
 
 
 @client.event
@@ -76,12 +75,12 @@ async def post():
 	channel_test = client.get_channel(1029384953189896322)
 	lastCheck = dtime.utcnow()-tdel(minutes = frequency)
 	print(dtime.utcnow(), 'start')
-	newRuns = []
+	newRuns = ['y4qnr82m']
 
 	for board in boards:
 		try:
 			getRuns = get('https://www.speedrun.com/api/v1/runs?status=verified&orderby=verify-date&direction=desc&game='+board).json()['data']
-			sleep(0.3)
+			sleep(0.6)
 			lastRun = boards[board] 
 			newLastRun = False
 			
@@ -102,17 +101,18 @@ async def post():
 			getPlace = 0
 			try:
 				getRun = api.get("runs/"+newRunID)
-				sleep(0.3)
+				sleep(0.6)
 			except srcomapi.exceptions.APIRequestException:
 				await channel_test.send("<@341941638681067520> run " + newRunID + " has been deleted")
 				continue
 			getPlayers = ''
 			getGame = api.get('games/'+getRun['game'])
-			sleep(0.3)
+			sleep(0.6)
 			getGameName = getGame['names']['international']
 			getGameID = getGame['id']
+			getGameAbbreviation = getGame['abbreviation']
 			getCategory = api.get('categories/'+getRun['category'])
-			sleep(0.3)
+			sleep(0.6)
 			getCategoryName = getGameName+" "+getCategory['name']
 			getCategoryID = getCategory['id']
 			getTime = convert(getRun['times']['primary_t'])
@@ -130,23 +130,25 @@ async def post():
 						api.get('users/'+getRun['players'][player]['id'])['names']['international'],
 						api.get('users/'+getRun['players'][player]['id'])['weblink']
 					)
-					sleep(0.6)
+					sleep(1.2)
 				else:
 					getPlayers += api.get('users/'+getRun['players'][player]['name'])
-					sleep(0.3)
+					sleep(0.6)
 			
-			leaderboardLink = 'https://www.speedrun.com/api/v1/leaderboards/%s/category/%s?' % (getGameID, getCategoryID)
+			getLeaderboardAPI = 'https://www.speedrun.com/api/v1/leaderboards/%s/category/%s?' % (getGameID, getCategoryID)
+			getLeaderboardLink = 'https://www.speedrun.com/%s?x=%s' % (getGameAbbreviation, getCategoryID)
 			if getGameName in gamesWithVariables:
 				for var in gamesWithVariables[getGameName]:
 					try:
 						getCategoryName += " "+api.get("variables/"+var)['values']['values'][getRun['values'][var]]['label']
-						leaderboardLink += "var-"+var+"="+getRun['values'][var]+'&'
-						sleep(0.3)
+						getLeaderboardAPI +=  "var-%s=%s&" % (var, getRun['values'][var])
+						getLeaderboardLink += "-%s.%s" % (var, getRun['values'][var])
+						sleep(0.6)
 					except:
 						getCategoryName += ''
 			
-			getLeaderboard = get(leaderboardLink).json()['data']
-			sleep(0.3)
+			getLeaderboard = get(getLeaderboardAPI).json()['data']
+			sleep(0.6)
 			for runOnBoard in getLeaderboard['runs']:
 				if runOnBoard['run']['id']==newRunID:
 					getPlace = runOnBoard['place']
@@ -156,7 +158,7 @@ async def post():
 						message = "<:GoldScar:619662499381379072> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
 						getPlayers, 
 						getCategoryName,
-						api.get('categories/'+getRun['category'])['weblink'],
+						getLeaderboardLink,
 						getTime,
 						api.get("runs/"+newRunID)['weblink'],
 					)
@@ -164,7 +166,7 @@ async def post():
 					message = "%s got a new run in [%s](%s) with a time of [%s](%s)" % (
 						getPlayers, 
 						getCategoryName,
-						api.get('categories/'+getRun['category'])['weblink'],
+						getLeaderboardLink,
 						getTime,
 						api.get("runs/"+newRunID)['weblink'],
 					)
@@ -172,12 +174,12 @@ async def post():
 					message = "%s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
 						getPlayers, 
 						getCategoryName,
-						api.get('categories/'+getRun['category'])['weblink'],
+						getLeaderboardLink,
 						getTime,
 						api.get("runs/"+newRunID)['weblink'],
 						ordinal(getPlace)
 					)
-				sleep(0.6)
+				sleep(1.2)
 				messageEmbed = discord.Embed(colour=discord.Colour(0xffd700), url="https://discordapp.com", description=message)
 				await channel_main.send(embed = messageEmbed)				
 			except srcomapi.exceptions.APIRequestException:
