@@ -75,7 +75,7 @@ async def post():
 	channel_test = client.get_channel(1029384953189896322)
 	lastCheck = dtime.utcnow()-tdel(minutes = frequency)
 	print(dtime.utcnow(), 'start')
-	newRuns = ['y4qnr82m']
+	newRuns = []
 
 	for board in boards:
 		try:
