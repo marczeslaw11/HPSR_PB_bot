@@ -154,15 +154,7 @@ async def post():
 					getPlace = runOnBoard['place']
 			
 			try:
-				if getPlace == 1:
-						message = "<:GoldScar:619662499381379072> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
-						getPlayers, 
-						getCategoryName,
-						getLeaderboardLink,
-						getTime,
-						api.get("runs/"+newRunID)['weblink'],
-					)
-				elif getPlace == 0:
+				if getPlace == 0:
 					message = "%s got a new run in [%s](%s) with a time of [%s](%s)" % (
 						getPlayers, 
 						getCategoryName,
@@ -170,6 +162,32 @@ async def post():
 						getTime,
 						api.get("runs/"+newRunID)['weblink'],
 					)
+				elif getPlace == 1:
+					message = "<:health1st:1035612309571244032> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
+						getPlayers, 
+						getCategoryName,
+						getLeaderboardLink,
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+					)
+				elif getPlace == 2:
+					message = "<:health2nd:1035612311412543609> %s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
+						getPlayers, 
+						getCategoryName,
+						getLeaderboardLink,
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+						ordinal(getPlace)
+					)
+				elif getPlace == 3:
+					message = "<:health3rd:1035612307574751254> %s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
+						getPlayers, 
+						getCategoryName,
+						getLeaderboardLink,
+						getTime,
+						api.get("runs/"+newRunID)['weblink'],
+						ordinal(getPlace)
+					)				
 				else:
 					message = "%s got a new PB in [%s](%s) with a time of [%s](%s) [%s]" % (
 						getPlayers, 
