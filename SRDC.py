@@ -163,7 +163,7 @@ async def post():
 						api.get("runs/"+newRunID)['weblink'],
 					)
 				elif getPlace == 1:
-						message = "<:health1st:1035612309571244032> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
+					message = "<:health1st:1035612309571244032> %s got a new WR in [%s](%s) with a time of [%s](%s)" % (
 						getPlayers, 
 						getCategoryName,
 						getLeaderboardLink,
