@@ -1,4 +1,3 @@
-from operator import truediv
 import discord
 from discord.ext import commands
 from discord.ext import tasks
@@ -10,7 +9,6 @@ from datetime import timedelta as tdel
 import math
 import os
 from time import sleep
-
 
 
 def convert(t):
@@ -116,10 +114,20 @@ async def post():
 			getCategoryName = getGameName+" "+getCategory['name']
 			getCategoryID = getCategory['id']
 			getTime = convert(getRun['times']['primary_t'])
+
+			getLeaderboardAPI = 'https://www.speedrun.com/api/v1/leaderboards/%s/category/%s?' % (getGameID, getCategoryID)
+			getLeaderboardLink = 'https://www.speedrun.com/%s?x=%s' % (getGameAbbreviation, getCategoryID)
 			
 			if getRun['level'] != None:
-				continue
-			
+				getLevel = api.get('levels/'+getRun['level'])
+				sleep(0.6)
+				getLevelName = getLevel['name']
+				getLevelID = getLevel['id']
+				getCategoryName = getGameName+" "+getLevelName+" "+getCategory['name']
+
+				getLeaderboardAPI = 'https://www.speedrun.com/api/v1/leaderboards/%s/level/%s/%s?' % (getGameID, getLevelID, getCategoryID)
+				getLeaderboardLink = 'https://www.speedrun.com/%s/level/%s?x=%s' % (getGameAbbreviation, getLevelName, getCategoryID)
+
 			for player in range(len(getRun['players'])):
 				if player == len(getRun['players'])-1 and len(getRun['players']) > 1:
 					getPlayers += ' and '
@@ -135,8 +143,6 @@ async def post():
 					getPlayers += api.get('users/'+getRun['players'][player]['name'])
 					sleep(0.6)
 			
-			getLeaderboardAPI = 'https://www.speedrun.com/api/v1/leaderboards/%s/category/%s?' % (getGameID, getCategoryID)
-			getLeaderboardLink = 'https://www.speedrun.com/%s?x=%s' % (getGameAbbreviation, getCategoryID)
 			if getGameName in gamesWithVariables:
 				for var in gamesWithVariables[getGameName]:
 					try:
@@ -201,7 +207,7 @@ async def post():
 				messageEmbed = discord.Embed(colour=discord.Colour(0xffd700), url="https://discordapp.com", description=message)
 				await channel_main.send(embed = messageEmbed)				
 			except srcomapi.exceptions.APIRequestException:
-				await channel_test.send("<@341941638681067520> run " + newRunID + " has been deleted")
+				await channel_test.send("<@341941638681067520> run " + newRunID + " broke Sadge")
 	
 	print(dtime.utcnow(), 'done')
 
