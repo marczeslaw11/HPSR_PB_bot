@@ -126,7 +126,8 @@ async def post():
 				getCategoryName = getGameName+" "+getLevelName+" "+getCategory['name']
 
 				getLeaderboardAPI = 'https://www.speedrun.com/api/v1/leaderboards/%s/level/%s/%s?' % (getGameID, getLevelID, getCategoryID)
-				getLeaderboardLink = 'https://www.speedrun.com/%s/level/%s?x=%s' % (getGameAbbreviation, getLevelName, getCategoryID)
+				#getLeaderboardLink = 'https://www.speedrun.com/%s/level/%s?x=%s' % (getGameAbbreviation, getLevelName, getCategoryID)
+				getLeaderboardLink = getLevel['weblink'] + "?x=" + getCategoryID
 
 			for player in range(len(getRun['players'])):
 				if player == len(getRun['players'])-1 and len(getRun['players']) > 1:
